@@ -17,31 +17,48 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 class WS:
     
-    
-
-    @app.route('/ws/<table_name>/<login>/<password>', methods = ['GET'])
-    def get_product_type(table_name,login, password):
+    @app.route('/ws/<table_name>', methods = ['GET'])
+    def get_product_type(table_name):
         '''
         Returns all items of <table_name> table
         '''
         db_obj=DataBaseCl()
-        if db_obj.checkauth(login, password):
-            result=db_obj.select_without_params(table_name)
-            return jsonify( { 'result:' : result} )
-        else:
-            return ('You have no permissions')
-
-    @app.route('/ws/<table_name>/<params>/<login>/<password>', methods = ['GET'])
-    def get_items(table_name, params,login, password):
+        result=db_obj.select_without_params(table_name)
+        return jsonify( { 'result:' : result} )
+    
+    @app.route('/ws/<table_name>/<params>', methods = ['GET'])
+    def get_items(table_name, params):
         '''
         Returns all items of <table_name> table, according to the parameters
         '''
         db_obj=DataBaseCl()
-        if db_obj.checkauth(login, password):
-            result=db_obj.select_with_params(table_name, params)
-            return jsonify( { 'result:' : result} )
-        else:
-            return ('You have no permissions')
+        result=db_obj.select_with_params(table_name, params)
+        return jsonify( { 'result:' : result} )
+        
+##
+##    @app.route('/ws/<table_name>/<login>/<password>', methods = ['GET'])
+##    def get_product_type(table_name,login, password):
+##        '''
+##        Returns all items of <table_name> table
+##        '''
+##        db_obj=DataBaseCl()
+##        if db_obj.checkauth(login, password):
+##            result=db_obj.select_without_params(table_name)
+##            return jsonify( { 'result:' : result} )
+##        else:
+##            return ('You have no permissions')
+
+##    @app.route('/ws/<table_name>/<params>/<login>/<password>', methods = ['GET'])
+##    def get_items(table_name, params,login, password):
+##        '''
+##        Returns all items of <table_name> table, according to the parameters
+##        '''
+##        db_obj=DataBaseCl()
+##        if db_obj.checkauth(login, password):
+##            result=db_obj.select_with_params(table_name, params)
+##            return jsonify( { 'result:' : result} )
+##        else:
+##            return ('You have no permissions')
     
     @app.route('/ws/delete/<table_name>/<params>/<login>/<password>',methods=['DELETE'])
     def delete_items(table_name, params,login, password):
