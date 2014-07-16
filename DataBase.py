@@ -82,27 +82,64 @@ class DataBase:
             cur.close()
 
     def select_with_params(self, table_name, params):
-        '''
-        USER_NAME=5;GROUP_ID=1
-        '''
-        names = []
-        values = []
-        temp = params.split(';')
-
-        for i in range(len(temp)):
-            names.append(temp[i].split("=")[0])
-            values.append(temp[i].split("=")[1])
-        print names
-        print values
-
+##        USER_NAME='Admin',GROUP_ID=1
+##            SELECT * FROM TABLE_NAME WHERE USER_NAME=Admin, GROUP_ID=1;
         cur = self.connection.cursor()
-        print "SELECT "
+        get_params = params.split(',')
 
+        query = "SELECT * FROM " + table_name + " WHERE "
+        
+        for i in range(len(get_params)):
+            if i != len(get_params) - 1:
+                query += get_params[i] + " AND "
+            else:
+                query += get_params[i] + ";"
+                
+        print query
+        try:
+            cur.execute(query)
+        except:
+            print "Comment area" #Vot tut srochno doljen bit' comment
+        finally:
+            cur.close()
+        print cur.fetchall() #Test cursora
+
+##TODO: SELECT with *args
+    def select(self, table_name, *params):
+        cur = self.connection.cursor()
+        if len(params) == 0:
+            try:
+                print "SELECT * FROM " + table_name + ";"
+                return cur.execute("SELECT * FROM " + table_name + ";")     
+            except:
+                print "Cannot execute method." #!
+            finally:
+                cur.close()
+        else:
+            get_params = params.split(',')
+
+            query = "SELECT * FROM " + table_name + " WHERE "
+        
+            for i in range(len(get_params)):
+                if i != len(get_params) - 1:
+                    query += get_params[i] + " AND "
+                else:
+                    query += get_params[i] + ";"
+                
+            print query
+            try:
+                cur.execute(query)
+            except:
+                print "Comment area" #Vot tut srochno doljen bit' comment
+            finally:
+                cur.close()
+            print cur.fetchall() #Test cursora
+
+        
 if __name__ == "__main__":
     d = DataBase("practice", "123", "192.168.111.133", "orcl")
 ##    result = d.login("Admin", "123")
-    d.select_with_params("USERS", "USER_NAME=5;GROUP_ID=1")
-    
+    d.select_with_params("USERS", "USER_NAME='Admin',GROUP_ID=1")
     
 
 
