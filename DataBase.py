@@ -47,14 +47,51 @@ class DataBase:
         finally:
             cur.close()
 
-    def update():
-        pass
+    def update(self, table_name, update_field, condition):
+        #UPDATE table_name SET col1=val1, col2=val2 WHERE ID=6;
+        #SET USER_NAME='Admin',GROUP_ID=1
+        #WHERE condition
+        cur = self.connection.cursor()
+        
+        get_field_params = update_field.replace(';',',')
+        get_where_params = condition.replace(';',' AND ')
 
-    def insert():
-        pass
+        query = "UPDATE " + table_name + " SET " + get_field_params + " WHERE " + get_where_params + ";"       
+        print query
 
-    def create(table_name):
-        pass
+        try:
+            cur.execute(query)
+        except:
+            print "Cannot execute method" #TODO:
+        finally:
+            cur.close()
+
+    def insert(self, table_name, fields, values):
+        cur = self.connection.cursor()
+        get_fields = fields.replace(';',',')
+        get_values = values.replace(';',',')
+        query = "INSERT INTO " + table_name + " (" + get_fields + ") VALUES (" + get_values + ");"
+        print query
+
+        try:
+            cur.execute(query)
+            cur.execute("SELECT * FROM USERS;")
+            print cur.fetchall()
+        except:
+            print "Cannot execute method" #TODO:
+        finally:
+            cur.close()
+
+    def create(self, table_name, params):
+        cur = self.connection.cursor()
+
+        query = "CREATE TABLE " + table_name + " (" + params + ");"
+        try:
+            cur.execute(query)
+        except:
+            print "Cannot execute method" #TODO:
+        finally:
+            cur.close()
 
     def delete_table(self, table_name):
         cur = self.connection.cursor()
@@ -65,11 +102,24 @@ class DataBase:
             print "Cannot drop table."
         finally:
             cur.close()
-            
-        
+                    
 
-    def delete_value(table_name, params):
-        pass
+    def delete_value(self, table_name, condition):
+        #DELETE FROM table_name WHERE
+        cur = self.connection.cursor()
+        
+        get_value = condition.replace(';',' AND ')
+        query = "DELETE FROM " + table_name + " WHERE " + get_value + ";"
+        print query
+
+        try:
+            cur.execute(query)
+            cur.execute("SELECT * FROM USERS;")
+            print cur.fetchall()
+        except:
+            print "Cannot execute method" #TODO:
+        finally:
+            cur.close()
 
     def select_without_params(self, table_name):
         cur = self.connection.cursor()
@@ -85,15 +135,9 @@ class DataBase:
 ##        USER_NAME='Admin',GROUP_ID=1
 ##            SELECT * FROM TABLE_NAME WHERE USER_NAME=Admin, GROUP_ID=1;
         cur = self.connection.cursor()
-        get_params = params.split(',')
+        get_params = params.replace(';', ' AND ')
 
-        query = "SELECT * FROM " + table_name + " WHERE "
-        
-        for i in range(len(get_params)):
-            if i != len(get_params) - 1:
-                query += get_params[i] + " AND "
-            else:
-                query += get_params[i] + ";"
+        query = "SELECT * FROM " + table_name + " WHERE " + get_params + ";"
                 
         print query
         try:
@@ -102,7 +146,7 @@ class DataBase:
             print "Comment area" #Vot tut srochno doljen bit' comment
         finally:
             cur.close()
-        print cur.fetchall() #Test cursora
+##        print cur.fetchall() #Test cursora
 
 ##TODO: SELECT with *args
     def select(self, table_name, *params):
@@ -116,15 +160,9 @@ class DataBase:
             finally:
                 cur.close()
         else:
-            get_params = params.split(',')
+            get_params = params.replace(';',' AND ')
 
-            query = "SELECT * FROM " + table_name + " WHERE "
-        
-            for i in range(len(get_params)):
-                if i != len(get_params) - 1:
-                    query += get_params[i] + " AND "
-                else:
-                    query += get_params[i] + ";"
+            query = "SELECT * FROM " + table_name + " WHERE " + get_params + ";"
                 
             print query
             try:
@@ -133,13 +171,15 @@ class DataBase:
                 print "Comment area" #Vot tut srochno doljen bit' comment
             finally:
                 cur.close()
-            print cur.fetchall() #Test cursora
+##            print cur.fetchall() #Test cursora
 
         
 if __name__ == "__main__":
     d = DataBase("practice", "123", "192.168.111.133", "orcl")
 ##    result = d.login("Admin", "123")
-    d.select_with_params("USERS", "USER_NAME='Admin',GROUP_ID=1")
-    
-
+##    d.select_with_params("USERS", "USER_NAME='Admin';GROUP_ID=1")
+##    d.update("USERS", "USER_NAME='Admin'", "GROUP_ID=1")
+##    d.insert("USERS", "USER_NAME;PASSWORD;GROUP_ID", "'John';666;0")
+##    d.delete_value("USERS", "USER_NAME='Test'")
+##    d.insert("USERS", "USER_NAME;PASSWORD;GROUP_ID", "'Test';666;0")
 
