@@ -38,27 +38,25 @@ class DataBase:
             cur.close()
         
 
-    def get_tables_quantity(self, table_name):
-        cur = connectiaon.cursor()
-        try:
-            return cur.execute("SELECT COUNT(*) FROM user_tables;")
-        except:
-            print "Cannot get tables quantity."
-        finally:
-            cur.close()
+##    def get_tables_quantity(self, table_name):
+##        cur = self.connectiaon.cursor()
+##        try:
+##            return cur.execute("SELECT COUNT(*) FROM user_tables;")
+##        except:
+##            print "Cannot get tables quantity."
+##        finally:
+##            cur.close()
 
     def update(self, table_name, update_field, condition):
         #UPDATE table_name SET col1=val1, col2=val2 WHERE ID=6;
         #SET USER_NAME='Admin',GROUP_ID=1
         #WHERE condition
         cur = self.connection.cursor()
-        
         get_field_params = update_field.replace(';',',')
         get_where_params = condition.replace(';',' AND ')
 
         query = "UPDATE " + table_name + " SET " + get_field_params + " WHERE " + get_where_params + ";"       
-        print query
-
+##        print query
         try:
             cur.execute(query)
         except:
@@ -70,9 +68,9 @@ class DataBase:
         cur = self.connection.cursor()
         get_fields = fields.replace(';',',')
         get_values = values.replace(';',',')
+        
         query = "INSERT INTO " + table_name + " (" + get_fields + ") VALUES (" + get_values + ");"
-        print query
-
+##        print query
         try:
             cur.execute(query)
             cur.execute("SELECT * FROM USERS;")
@@ -110,8 +108,7 @@ class DataBase:
         
         get_value = condition.replace(';',' AND ')
         query = "DELETE FROM " + table_name + " WHERE " + get_value + ";"
-        print query
-
+##        print query
         try:
             cur.execute(query)
             cur.execute("SELECT * FROM USERS;")
@@ -123,8 +120,9 @@ class DataBase:
 
     def select_without_params(self, table_name):
         cur = self.connection.cursor()
+        
         try:
-            print "SELECT * FROM " + table_name + ";"
+##            print "SELECT * FROM " + table_name + ";"
             return cur.execute("SELECT * FROM " + table_name + ";")     
         except:
             print "Cannot execute method." #!
@@ -141,7 +139,7 @@ class DataBase:
                 
         print query
         try:
-            cur.execute(query)
+            return cur.execute(query)
         except:
             print "Comment area" #Vot tut srochno doljen bit' comment
         finally:
@@ -151,6 +149,7 @@ class DataBase:
 ##TODO: SELECT with *args
     def select(self, table_name, *params):
         cur = self.connection.cursor()
+        
         if len(params) == 0:
             try:
                 print "SELECT * FROM " + table_name + ";"
@@ -162,11 +161,10 @@ class DataBase:
         else:
             get_params = params.replace(';',' AND ')
 
-            query = "SELECT * FROM " + table_name + " WHERE " + get_params + ";"
-                
-            print query
+            query = "SELECT * FROM " + table_name + " WHERE " + get_params + ";"                
+##            print query
             try:
-                cur.execute(query)
+                return cur.execute(query)
             except:
                 print "Comment area" #Vot tut srochno doljen bit' comment
             finally:
