@@ -1,0 +1,92 @@
+# -*- coding: utf-8 -*-
+
+import cx_Oracle
+import _mysql
+import sys
+import MySQLdb as mdb
+from collections import OrderedDict
+class DataBaseCl:
+    
+    def __init__(self):
+        try:
+            self.con = mdb.connect('localhost', 'practice', '123', 'testdb')
+            self.cursor=self.con.cursor()    
+        except _mysql.Error, e:
+            return "Error %d: %s" % (e.args[0], e.args[1])
+            
+    def db_if_table_exsists(self, table_name):
+        self.cursor.execute('SHOW TABLES LIKE \''+table_name+'\'')
+        res = self.cursor.fetchall()
+        return len(res)
+
+    def user_friendly_return(self,*parameters):
+        diction={}
+        fin=[]
+        for i in parameters[1]:
+            for j in range(len(i)):
+                diction[parameters[0][j][0]]=i[j]
+            fin.append(diction)
+            diction={}
+        return {"result":fin}
+    
+    def db_get_all_tables(self):
+        self.cursor.execute("select table_name from information_schema.tables where TABLE_SCHEMA=\"testdb\"")
+        res = self.cursor.fetchall()
+        return self.user_friendly_return([['tableName']],res)
+       
+    def get_table_fields(self, table_name):
+        if self.db_if_table_exsists(table_name)==1:
+            self.cursor.execute('SELECT column_name, DATA_TYPE  FROM information_schema.columns WHERE table_name =\'%s\';'%table_name)
+            res = self.cursor.fetchall()
+        return res
+        
+    def db_select(self, table_name, *param):
+        if len(param)>0:
+            self.cursor.execute('SELECT * FROM %s WHERE %s ' %( table_name,' AND ' .join(param)))
+            res = self.cursor.fetchall() 
+        else:
+            self.cursor.execute('select * from '+str(table_name)+';')
+            res = self.cursor.fetchall()
+        fields=self.get_table_fields(table_name) 
+        return self.user_friendly_return(fields,res)
+
+    def db_delete(self, table_name, *params):
+        with self.con:
+            self.cursor.execute('Delete from %s where %s ;' %(table_name, ' AND ' .join(params)))
+            
+    def db_update(self,  table_name, *params):
+        with self.con:
+            self.cursor.execute('Update %s set %s where %s ;' %(table_name, ', ' .join(params[1]), ', ' .join(params[0])))  
+        
+    def db_insert(self,  table_name, *params):
+        with self.con:
+            self.cursor.execute('Insert into %s set %s'%(table_name, ', ' .join(params)))
+
+    def db_table_create(self, table_name, *params):    
+        return self.cursor.execute('Create table %s (%s )'%(table_name, ', ' .join(params)))
+
+    def checkauth(self,login,password):
+        self.cursor.execute('select login, password, rang from dbUsers where login=\'%s\''%login)
+        result=self.cursor.fetchall()
+        fields=[['login'],['password'], ['range']]
+        if len(result)>0:
+            for i in result:
+                if password==i[1]:
+                    return self.user_friendly_return(fields, result)
+                else:
+                    return {'Error':'wrong password'}
+        else:
+            return {'Error':'wrong login'}
+
+
+       # def checkauth(self,login,password):
+       #  self.cursor.execute('select login, password from Users where login=\'%s\''%login)
+       #  result=self.cursor.fetchall()
+       #  if len(user)>0:
+       #      if password= result[1]
+       #          return {'result':result[2]}
+       #      else:
+       #          return {'result':'wrong password'}
+       #  else:
+       #      return {'Error':'wrong login'}
+       #  

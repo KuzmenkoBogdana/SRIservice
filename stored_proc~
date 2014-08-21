@@ -1,0 +1,94 @@
+Create procedure checkTable(
+@table_name  _IN VARCHAR2,
+@tmp_table VARCHAR2)
+as
+BEGIN
+SELECT OBJECT_NAME INTO @tmp_table FROM USER_OBJECTS
+WHERE OBJECT_NAME = UPPER(@table_name) AND OBJECT_TYPE = 'TABLE';
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE ('Invalid table: ' || table_name);
+END;
+
+//------------------
+
+
+
+CREATE PROCEDURE db_select_without_params(
+IN table_name VARCHAR
+OUT query VARCHAR)
+BEGIN
+SELECT * FROM tablename;
+END
+
+//---------------------
+
+Create procedure DB_SELECT_WITH_PARAMS(
+@table_name _IN VARCHAR(max)
+@parameters _IN VARCHAR(max)
+@query varchar(max))
+as
+BEGIN
+set @query ='select * from ' + @tablename +'  Where' + @parameters
+execute immediate (@query)
+END
+
+//---------------------
+
+Create procedure DB_DELETE(
+@table_name _IN VARCHAR(max)
+@parameters _IN VARCHAR(max)
+@query varchar(max))
+as
+BEGIN
+Set @query='delecte from '+@table_name + ' Where '+@parameters
+execute immediate(@query)
+END
+
+//-----------------------
+
+Create procedure DB_UPDATE(
+@table_name _IN VARCHAR(max)
+@parameters_before _IN VARCHAR(max)
+@parameters_after _IN VARCHAR(max)
+@query varchar(max))
+as
+BEGIN
+Set @query='Update '+@table_name+ ' set '+@parameters_before +' where '+ @parameters_after
+execute immediate(@query)
+END
+
+//-------------------------
+
+Create procedure DB_INSERT(
+@table_name _IN VARCHAR(max)
+@parameters _IN VARCHAR(max)
+@query varchar(max))
+as
+BEGIN
+Set @query='Insert into'+@table_name + ' ( '+@parameters+ ')'
+execute immediate(@query)
+END
+
+//-------------------------
+
+Create procedure DB_CHECKOUTH(
+@login _IN VARCHAR(10)
+@password _IN VARCHAR(10)
+@result out SYS_REFCURSOR)
+as
+BEGIN
+execute immediate(SELECT rang from USERS WHERE (login AND password) Like (@login and @password))
+END 
+
+//-------------------------
+Create procedure DB_CREATE_TABLE(
+@table_name _IN VARCHAR(20)
+@parameters _IN VARCHAR(max)
+@query VARCHAR(max))
+as
+BEGIN
+set @query= "Create table "+@table_name +' '+@parameters
+execute immediate(@query)
+END
+

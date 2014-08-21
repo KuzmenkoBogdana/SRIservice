@@ -1,0 +1,223 @@
+# -*- coding: utf-8 -*-
+
+import os
+from flask.ext.httpauth import HTTPBasicAuth
+from flask import Flask, jsonify, abort, request, make_response, url_for, flash
+from flask import send_from_directory
+from werkzeug import secure_filename
+from DataBaseCl import *
+from FileHandler import *
+from RequestHandler import *
+from functools import wraps
+import logging
+import json
+from webargs.flaskparser import FlaskParser
+from webargs import Arg
+from flask import render_template
+
+app = Flask(__name__, static_url_path='')
+UPLOAD_FOLDER = '/home/bogdana/forfile/'
+ALLOWED_EXTENSIONS = ['txt', 'xml']
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+db_obj=DataBaseCl()
+reqHandler=RequestHandler()
+parser = FlaskParser()
+class WS:
+    
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return jsonify({"Error":"sorry, page is not found"})
+    
+    @app.errorhandler(500)
+    def page_not_found(e):
+        return jsonify({"Error":"server error"})
+
+    def login(func):
+        '''
+        function decorator for checking authorisation
+        '''
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            req_m=request.method
+            if req_m=='GET':
+                login= request.args.get('login')
+                password=request.args.get('password')
+            if req_m=='POST':
+                request.get_json(force=True)
+                login= request.json.get('login')
+                password=request.json.get('password')
+            if login!=None:
+                if password!=None:
+                    try:
+                        res=app.test_client().get('/ws/authorisation/?login='+login+'&password='+password)
+                        if json.loads(res.data)["result"][0]["range"]=='user':
+                            return func(*args, **kwargs)
+                    except KeyError:
+                        return res.data
+                    return jsonify({"Error":["You have no permissions"]})
+                return jsonify({"Error":["password field is empty"]})
+            return jsonify({"Error":["login field is empty"]})
+        return decorated_function
+
+    def check_table(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            if request.method=='GET':
+                table_name=request.args.get('table_name')
+            if request.method=='POST':
+                request.get_json(force=True)
+                table_name=request.json.get('table_name')
+            if table_name!=None:
+                if db_obj.db_if_table_exsists(table_name)==1:
+                    return func(*args,**kwargs)
+                else:
+                    return jsonify({"Error":"Table doesn't exsist"})
+            return jsonify({"Error":"table field is empty"})
+        return decorated_function
+
+
+    @app.route('/ws/authorisation/', methods = ['GET', 'POST'])
+    def authorisation():
+        '''
+        authorization
+        '''
+        if request.method=='POST':
+            request.get_json(force=True)
+            login=request.json.get("login")
+            password=request.json.get("password")
+        if request.method=='GET':
+            login=request.args.get("login")
+            password=request.args.get("password")
+        return jsonify(db_obj.checkauth(login,password))
+
+    @app.route('/ws/alltables/?table_name=cables&is=1', methods = ['GET','POST'])
+    @login
+    def get_all_tables():
+        '''
+        returns list of all tables from data base
+        '''
+        return jsonify(db_obj.db_get_all_tables())     
+
+    @app.route('/ws/get_tables_fields/', methods = ['GET', 'POST'])
+    @login
+    @check_table
+    def get_tables_fields():
+        '''
+        returns ductionaty of all filds and their types according to the input table
+        '''
+        if request.method == 'POST':
+            request.get_json(force=True)
+            table_name=request.json.get("table_name") 
+        if request.method == 'GET':
+            table_name=request.args.get("table_name") 
+        return jsonify({"result":dict(db_obj.get_table_fields(table_name))})
+    
+    @app.route('/ws/get_items/', methods=['GET','POST'])
+    @login
+    @check_table
+    def get_items():
+        '''
+        returns all items of input table
+        '''
+        if request.method == 'POST':
+            request.get_json(force=True)
+            table_name=request.json.get("table_name") 
+            p=dict(db_obj.get_table_fields(table_name)).keys()
+            list_of_params= [request.json.get(item.lower()) for item in p]
+        if request.method == 'GET':
+            table_name=request.args.get("table_name") 
+            p=dict(db_obj.get_table_fields(table_name)).keys()
+            list_of_params= [request.args.get(item.lower()) for item in p]
+        if len(set(list_of_params))>1:
+            return jsonify(reqHandler.select(table_name, *(zip(p, list_of_params))))
+        return jsonify(db_obj.db_select(table_name))
+
+    @app.route('/ws/update/',methods=['GET','POST'])
+    @login
+    @check_table
+    def update_items():
+        '''
+        changes records with params_before according to params_after
+        returns all items after deleting
+        '''
+        if request.method == 'POST':
+            request.get_json(force=True)
+            table_name=request.json.get("table_name") 
+            p=dict(db_obj.get_table_fields(table_name)).keys()
+            params_before = request.json.get('params_to_update')
+            values=request.json.get('values')
+        if request.method == 'GET':
+            table_name=request.args.get("table_name") 
+            p=dict(db_obj.get_table_fields(table_name)).keys()
+            list_of_params_before = [request.args.get(item.lower()+'_before') for item in p]
+            list_of_params_after =[request.args.get(item.lower()+'_after') for item in p]
+        params_before=zip(p, list_of_params_before)
+        params_after=zip(p, list_of_params_after)
+        par=[params_before, params_after]
+        return jsonify(reqHandler.update(table_name, *par))
+        
+    @app.route('/ws/delete/',methods=['GET','POST'])
+    @login
+    @check_table
+    def delete_items():
+        '''
+        deletes records according to unput params
+        returns all items after deleting
+        '''
+        p=dict(db_obj.get_table_fields(table_name)).keys()
+        if request.method == 'POST':
+            request.get_json(force=True)
+            table_name=request.json.get("table_name") 
+            p=dict(db_obj.get_table_fields(table_name)).keys()
+            list_of_params= [request.json.get(item.lower()) for item in p]
+        if request.method == 'GET':
+            table_name=request.args.get("table_name") 
+            p=dict(db_obj.get_table_fields(table_name)).keys()
+            list_of_params= [request.args.get(item.lower()) for item in p]
+        return jsonify(reqHandler.delete(table_name, *(zip(p, list_of_params))))
+        
+    @app.route('/ws/file_upload/', methods=['GET', 'POST'])
+    @login
+    def upload_file(login, password):
+        '''
+        modification data base accoding to parameters specified at the input file
+        '''
+        if request.method == 'POST':
+            f = request.files['file_name']
+            if f: 
+                if f.filename.split('.')[1] in ALLOWED_EXTENSIONS:
+                    filename = secure_filename(f.filename)
+                    path_f=os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    f.save(path_f)
+                    req=FileHandler(path_f)
+                    res=req.parse_file()
+                    return jsonify( { 'result' : res} )
+            else:
+                return 'not upload' 
+        return '''
+        <!doctype html>
+        <form action="" method=post enctype=multipart/form-data>
+              <p><input type=file name= file_name> 
+             <input type=submit value=Upload>
+        </form>
+        '''
+
+##    @app.route('/ws/fileupload/<path:filefoulder>/<file_name>', methods = ['GET'])
+##    def send_foo(filefoulder,file_name, login, password):
+##        path='/'+filefoulder+'/'
+##        return send_from_directory(path,file_name)        
+
+if __name__ == '__main__':
+
+    log_f=os.path.join(app.config['UPLOAD_FOLDER'],'mylog.log')
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(log_f)
+    handler.setLevel(logging.DEBUG)
+    logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = log_f)
+    logger.addHandler(handler)
+    logger.info('Getting started')
+    logger.info('Done')
+    handler.close()   
+    app.run(debug = True, host='0.0.0.0')  

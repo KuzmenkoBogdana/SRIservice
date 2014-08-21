@@ -1,0 +1,129 @@
+stored procedures:
+
+//---------check_auth--------------
+
+CREATE  PROCEDURE `check_auth`(IN login VARCHAR(40))
+BEGIN
+ SET @t1 =CONCAT('select login, password, rang from dbUsers where login= "',login,'"' );
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+//----------select_without_params----------------
+
+CREATE  PROCEDURE `Select_without_params`(IN tab_name VARCHAR(40) )
+BEGIN
+ SET @t1 =CONCAT('SELECT * FROM ',tab_name );
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+//---------select_with_params--------------
+
+CREATE  PROCEDURE `Select_with_params`(IN tab_name VARCHAR(40), IN parameters VARCHAR (100))
+BEGIN
+ SET @t1 =CONCAT('SELECT * FROM ',tab_name, ' WHERE ', parameters );
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+
+//---------check_if_table_exsists--------------
+
+CREATE  PROCEDURE `check_if_table_exsists`(IN tab_name VARCHAR(40))
+BEGIN
+ SET @t1 =CONCAT('SHOW TABLES LIKE "', tab_name,'"' );
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+//---------get_all_tables-------------
+CREATE  PROCEDURE `get_all_tables`()
+BEGIN
+ select table_name from information_schema.tables where TABLE_SCHEMA="testdb";
+END
+
+//---------get_tables_fields-------------
+CREATE  PROCEDURE `get_tables_fields`(IN tab_name VARCHAR(40))
+BEGIN
+ SET @t1 =CONCAT('SELECT column_name, DATA_TYPE  FROM information_schema.columns WHERE table_name ="', tab_name, '"');
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+
+//---------get_tables_fields-------------
+CREATE  PROCEDURE `get_auto_inc_fields`(IN tab_name VARCHAR(40))
+BEGIN
+ SET @t1 =CONCAT('show columns from ', tab_name, ' where extra like "auto_increment"');
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+//---------delete-------------
+CREATE  PROCEDURE `Delete`(IN tab_name VARCHAR(40), IN parameters VARCHAR (100))
+BEGIN
+ SET @t1 =CONCAT('DELETE FROM ',tab_name, ' WHERE ', parameters );
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+//---------insert-------------
+
+CREATE  PROCEDURE `Insert`(IN tab_name VARCHAR(40), IN parameters VARCHAR (100))
+BEGIN
+ SET @t1 =CONCAT('INSERT INTO ',tab_name, ' SET ', parameters );
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+//-------------drop_table-----------
+
+CREATE  PROCEDURE `Drop_table`(IN tab_name VARCHAR(40) )
+BEGIN
+ SET @t1 =CONCAT('Drop table ',tab_name );
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+//-------------create_table-----------
+
+CREATE  PROCEDURE `Create_table`(IN tab_name VARCHAR(40), IN parameters VARCHAR(100))
+BEGIN
+ SET @t1 =CONCAT('Create table ',tab_name, '(',parameters ,')');
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END
+
+
+--try--
+CREATE  PROCEDURE `Almost_universal`(IN type_query VARCHAR(40), IN tab_name VARCHAR(40), IN parameters VARCHAR (100))
+BEGIN
+IF type_query='Select' THEN SET @t1 =CONCAT('SELECT * FROM ',tab_name, ' WHERE ', parameters );
+ELSEIF type_query='Delete' THEN SET @t1 =CONCAT('DELETE FROM ',tab_name, ' WHERE ', parameters );
+ELSEIF type_query='Insert' THEN SET @t1 =CONCAT('INSERT INTO ',tab_name, ' SET ', parameters );
+END IF;
+PREPARE stmt3 FROM @t1;
+EXECUTE stmt3;
+DEALLOCATE PREPARE stmt3;
+END
+
+                
+CREATE  PROCEDURE `test11`(IN tab_name VARCHAR(20), IN parameters VARCHAR (100))
+BEGIN
+ SET @t1=CONCAT('Insert into ',tab_name,' set ', parameters );
+ Select @t1;
+ PREPARE stmt3 FROM @t1;
+ EXECUTE stmt3;
+ DEALLOCATE PREPARE stmt3;
+END

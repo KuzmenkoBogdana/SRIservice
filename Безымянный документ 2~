@@ -1,0 +1,11 @@
+The general answer is no. 
+
+More specifically, it depends on which database you are using.
+
+While most database stored procedure languages would not allow the table name to be a variable, some have ways around this. 
+
+For example, Oracle has "execute immediate", which allows you to execute a sql statement stored in a string.
+So in a proc in Oracle PL/SQL you could do something like:
+
+str_sql := 'select * from ' || tablename;
+execute immediate(str_sql);

@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+
+from DataBaseCl import *
+from functools import wraps
+
+class RequestHandler:
+    def __init__(self):
+        self.db_obj=DataBaseCl()      
+
+    def creating_params_list(self, *params):
+        parameters=list(params)
+        res_params=[]
+        for l in parameters:
+            if l[1]!=None:
+                res_params.append(l)
+        result=["%s=%s" % (k, v) for k, v in dict(res_params).items()]
+        return result
+
+    def select(self, table_name, *params):
+        result=self.creating_params_list(*params)
+        return self.db_obj.db_select(table_name, *result)
+
+    def update (self, table_name, *params):
+        param_before=self.creating_params_list(*params[0])
+        param_after=self.creating_params_list(*params[1])
+        parameters=[param_before, param_after]
+        self.db_obj.db_update(table_name, *parameters)
+        return self.db_obj.db_select(table_name)
+
+    def delete(self,table_name, *params):
+        result=self.creating_params_list(*params)
+        self.db_obj.db_delete(table_name, *result)
+        return self.db_obj.db_select(table_name)
+
+    
+
+
+
+
+
+    # def check_table(func):
+    #     @wraps(func)
+    #     def decorated_function(self,*args):
+    #         if self.db_obj.db_if_table_exsists(args[0])==1:
+    #             return func(self,*args)
+    #         else:
+    #             return {"Error":"Table doesn't exsist"}
+    #     return decorated_function
+
+    # def checkparams(self,table_name, *param):
+    #     flag=True
+    #     table_fields=dict(self.db_obj.get_table_fields(table_name)).keys()
+    #     fields = [item.lower() for item in table_fields]
+    #     paramdict=[]
+    #     for i in param:
+    #         s=i.split('=')
+    #         paramdict.append(s)
+    #     for i in dict(paramdict).keys():
+    #         if i.lower() not in fields:
+    #             flag= False
+    #     return flag
+
+    # @check_table
+    # def select_without_params(self,table_name):
+    #     return self.db_obj.db_select(table_name)
+
+    # @check_table
+    # def select_with_params(self, table_name, params):
+    #     clean_param=params.replace(' ;',';')
+    #     param=clean_param.strip().split(';')
+    #     flag=self.checkparams(table_name,*param)
+    #     if flag!=True:
+    #         return {"Error":"Wrong table's fields"}
+    #     return self.db_obj.db_select(table_name, *param)
+    
+    # @check_table
+    # def db_func_update(self,table_name, params_before, params_after):
+    #     param_before=params_before.split(';')
+    #     param_after=params_after.split(';')
+    #     flag_param_before = self.checkparams(table_name, *param_before)
+    #     flag_param_after = self.checkparams(table_name, *param_after)
+    #     if flag_param_before==flag_param_after!=True:
+    #         return {"Error":"Wrong table's fields"}
+    #     params=[param_before, param_after]
+    #     self.db_obj.db_update(table_name, *params)
+    #     return self.db_obj.db_select(table_name)
+
+    # @check_table
+    # def db_func_del(self, table_name, params):
+    #     param=params.strip().split(';')
+    #     flag=self.checkparams(table_name, *param)
+    #     if flag!=True:
+    #         return {"Error":"Wrong table's fields"}
+    #     self.db_obj.db_delete(table_name, params)
+    #     return self.db_obj.db_select(table_name)
+    #     

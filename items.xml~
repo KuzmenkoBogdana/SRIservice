@@ -1,0 +1,37 @@
+<query>
+<insert>
+<table>
+<table_name>cables</table_name>
+<item>
+<name>"Philips SWV2255W/10 SCART-A/V"</name>
+<type>"test"</type>
+<length>2</length>
+</item>
+<item>
+<name>"Philips SWA2302W"</name>
+<type>"Toslink"</type>
+<length>2</length>
+</item>
+<item>
+<name>"Philips HDMI-HDMI SWV2492S/10"</name>
+<type>"HDMI"</type>
+<length>4</length>
+</item>
+<item>
+<name>"Philips SWV2714W/10"</name>
+<type>"VGA"</type>
+<length>6</length>
+</item>
+<item>
+<name>"Philips SWV2493S/10"</name>
+<type>"HDMI"</type>
+<length>7</length>
+</item>
+<item>
+<name>"ProLink Premium Chrome"</name>
+<type>"HDMI"</type>
+<length>7</length>
+</item>
+</table>
+</insert>
+</query>
